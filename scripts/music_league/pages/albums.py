@@ -15,7 +15,7 @@ def render_albums_index(model: SiteModel) -> str:
             f"{album.average_points:.2f}",
             str(len(album.submitters)),
         ]
-        for album in sorted(model.albums.values(), key=lambda item: (-item.total_points, -len(item.submissions), item.name.lower()))
+        for album in sorted(model.albums.values(), key=lambda item: (-len(item.submissions), -item.total_points, item.name.lower()))
     ]
     return page_shell(model, "Albums", section("Album Stats", table(["Album", "Artist", "Appearances", "Points", "Average Points", "Submitters"], rows)), model.site_dir / "albums" / "index.html")
 

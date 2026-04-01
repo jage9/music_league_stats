@@ -7,7 +7,7 @@ from ..render import anchor, page_shell, section, stat_grid, table
 
 
 def render_artists_index(model: SiteModel) -> str:
-    rows = [[anchor("artists/index.html", artist.url, artist.name), str(len(artist.submissions)), str(artist.total_points), f"{artist.average_points:.2f}", str(len(artist.submitters)), str(len(artist.leagues))] for artist in sorted(model.artists.values(), key=lambda item: (-item.total_points, item.name.lower()))]
+    rows = [[anchor("artists/index.html", artist.url, artist.name), str(len(artist.submissions)), str(artist.total_points), f"{artist.average_points:.2f}", str(len(artist.submitters)), str(len(artist.leagues))] for artist in sorted(model.artists.values(), key=lambda item: (-len(item.submissions), -item.total_points, item.name.lower()))]
     return page_shell(model, "Artists", section("Artists", table(["Artist", "Appearances", "Points", "Average Points", "Submitters", "Leagues"], rows)), model.site_dir / "artists" / "index.html")
 
 
