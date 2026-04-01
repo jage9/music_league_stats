@@ -1,6 +1,6 @@
 # Music League Stats
 
-This script Generates a static website with detailed stats for one or more [Music Leagues.]((https://musicleague.com/)
+This script Generates a static website with detailed stats for one or more [Music Leagues.](https://musicleague.com/)
 Music League is a website/app that allows you to compete against others for supremacy by choosing songs that fit the prompt. This script will use your league data to generate stat pages for:
 
 * Every artist
@@ -27,4 +27,5 @@ All ideas welcome. Please submit a PR.
 
 ## License
 MIT
+
 This repository is not endorsed by or created by Music League.
