@@ -55,6 +55,7 @@ class Submission:
     submitter_name: str
     created_at: datetime
     comment: str
+    album_key: str = ""
     votes: list["Vote"] = field(default_factory=list)
     total_points: int = 0
     vote_count: int = 0
@@ -151,6 +152,10 @@ class SiteModel:
     players: dict[str, Player] = field(default_factory=dict)
     artists: dict[str, Artist] = field(default_factory=dict)
     albums: dict[str, Album] = field(default_factory=dict)
+    round_winners: dict[str, Submission] = field(default_factory=dict)
+    league_urls_by_name: dict[str, str] = field(default_factory=dict)
+    player_urls_by_name: dict[str, str] = field(default_factory=dict)
+    artist_urls_by_name: dict[str, str] = field(default_factory=dict)
     playlists: list[Round] = field(default_factory=list)
     latest_leagues: list[League] = field(default_factory=list)
     top_submissions: list[Submission] = field(default_factory=list)

@@ -14,11 +14,11 @@ def render_artists_index(model: SiteModel) -> str:
 def render_artist_page(model: SiteModel, artist: Artist) -> str:
     submitter_counter = Counter(sub.submitter_name for sub in artist.submissions)
     league_counter = Counter(sub.league.name for sub in artist.submissions)
-    album_counter = Counter(sub.album for sub in artist.submissions)
+    album_counter = Counter(sub.album_key for sub in artist.submissions if sub.album_key)
     rows = [[anchor(artist.url, sub.url, sub.title), anchor(artist.url, model.players[sub.submitter_key].url, sub.submitter_name), anchor(artist.url, sub.round.url, sub.round.name), anchor(artist.url, sub.league.url, sub.league.name), str(sub.total_points), str(sub.place)] for sub in sorted(artist.submissions, key=lambda item: (-item.total_points, item.title.lower()))]
-    submitter_rows = [[anchor(artist.url, model.players[next(key for key, value in model.players.items() if value.name == name)].url, name), str(count)] for name, count in submitter_counter.most_common(12)]
-    league_rows = [[anchor(artist.url, next(league.url for league in model.leagues if league.name == name), name), str(count)] for name, count in league_counter.most_common()]
-    album_rows = [[anchor(artist.url, model.albums[next(key for key, value in model.albums.items() if value.name == name)].url, name), str(count)] for name, count in album_counter.most_common(12)]
+    submitter_rows = [[anchor(artist.url, model.player_urls_by_name[name], name), str(count)] for name, count in submitter_counter.most_common(12)]
+    league_rows = [[anchor(artist.url, model.league_urls_by_name[name], name), str(count)] for name, count in league_counter.most_common()]
+    album_rows = [[anchor(artist.url, model.albums[key].url, model.albums[key].name), str(count)] for key, count in album_counter.most_common(12)]
     body = "".join(
         [
             section("Artist Totals", stat_grid([("Appearances", len(artist.submissions)), ("Points", artist.total_points), ("Average Points", artist.average_points), ("Submitters", len(artist.submitters)), ("Leagues", len(artist.leagues))])),

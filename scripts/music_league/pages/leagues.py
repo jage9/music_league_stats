@@ -25,9 +25,10 @@ def render_leagues_index(model: SiteModel) -> str:
 
 
 def render_league_page(model: SiteModel, league: League) -> str:
+    league_winners = {rnd.key: model.round_winners.get(rnd.key) or _round_winner_submission(rnd) for rnd in league.rounds}
     rounds_rows = []
     for rnd in sorted(league.rounds, key=lambda item: item.created_at, reverse=True):
-        winner = _round_winner_submission(rnd)
+        winner = league_winners.get(rnd.key)
         winner_html = (
             f"{anchor(league.url, winner.url, winner.title)} by {anchor(league.url, model.players[winner.submitter_key].url, winner.submitter_name)}"
             if winner
@@ -44,13 +45,18 @@ def render_league_page(model: SiteModel, league: League) -> str:
             ]
         )
     players = [player for player in model.players.values() if league.name in player.leagues]
+    player_win_counts = Counter(
+        winner.submitter_key
+        for winner in league_winners.values()
+        if winner is not None
+    )
     player_rows = [
         [
             anchor(league.url, player.url, player.name),
             str(sum(1 for sub in player.submissions if sub.league.name == league.name)),
             str(sum(sub.total_points for sub in player.submissions if sub.league.name == league.name)),
             f"{statistics.mean(sub.total_points for sub in player.submissions if sub.league.name == league.name):.2f}",
-            str(sum(1 for rnd in league.rounds if (_round_winner_submission(rnd) and _round_winner_submission(rnd).submitter_key == player.key))),
+            str(player_win_counts[player.key]),
         ]
         for player in sorted(players, key=lambda item: (-sum(sub.total_points for sub in item.submissions if sub.league.name == league.name), item.name.lower()))[:15]
         if any(sub.league.name == league.name for sub in player.submissions)

@@ -10,12 +10,11 @@ def render_players_index(model: SiteModel) -> str:
 
 
 def render_player_page(model: SiteModel, player: Player) -> str:
-    artist_targets = {artist.name: artist.url for artist in model.artists.values()}
-    per_league = [[anchor(player.url, next(item.url for item in model.leagues if item.name == league), league), str(sum(1 for sub in player.submissions if sub.league.name == league)), str(sum(sub.total_points for sub in player.submissions if sub.league.name == league)), f"{sum(sub.total_points for sub in player.submissions if sub.league.name == league) / sum(1 for sub in player.submissions if sub.league.name == league):.2f}"] for league in sorted(player.leagues)]
+    per_league = [[anchor(player.url, model.league_urls_by_name[league], league), str(sum(1 for sub in player.submissions if sub.league.name == league)), str(sum(sub.total_points for sub in player.submissions if sub.league.name == league)), f"{sum(sub.total_points for sub in player.submissions if sub.league.name == league) / sum(1 for sub in player.submissions if sub.league.name == league):.2f}"] for league in sorted(player.leagues)]
     best = player.best_submission
     worst = player.worst_submission
     placement_rows = [[fmt_dt(sub.round.created_at), anchor(player.url, sub.round.url, sub.round.name), anchor(player.url, sub.url, sub.title), str(sub.place), str(sub.total_points), f"{sub.finish_percentile * 100:.1f}%"] for sub in player.placement_history]
-    signature_rows = [[anchor(player.url, artist_targets[name], name), str(count), str(points)] for name, count, points in player.signature_artists]
+    signature_rows = [[anchor(player.url, model.artist_urls_by_name[name], name), str(count), str(points)] for name, count, points in player.signature_artists]
     similar_rows = [[anchor(player.url, model.players[item.other_key].url, model.players[item.other_key].name), str(item.overlap), f"{item.similarity_score * 100:.1f}%", f"{item.average_gap:.2f}"] for item in player.similar_voters]
     best_points = best.total_points if best else None
     worst_points = worst.total_points if worst else None

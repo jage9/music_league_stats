@@ -16,16 +16,14 @@ def render_songs_index(model: SiteModel) -> str:
 
 def render_song_page(model: SiteModel, submission: Submission) -> str:
     related_submissions = [item for item in model.submissions if item.spotify_uri == submission.spotify_uri]
-    artist_targets = {artist.name: artist.url for artist in model.artists.values()}
-    album_target = next((album.url for album in model.albums.values() if album.name == submission.album), None)
     summary_cards = [
         (
             "Artist",
-            ", ".join(anchor(submission.url, artist_targets[name], name) for name in submission.artists),
+            ", ".join(anchor(submission.url, model.artist_urls_by_name[name], name) for name in submission.artists),
         ),
         (
             "Album",
-            anchor(submission.url, album_target, submission.album) if album_target else submission.album,
+            anchor(submission.url, model.albums[submission.album_key].url, submission.album) if submission.album_key in model.albums else submission.album,
         ),
         (
             "Uses",

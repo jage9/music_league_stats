@@ -59,6 +59,7 @@ def enrich_model(model: SiteModel) -> None:
 
         album_name = submission.album or "Unknown Album"
         album_key = _album_key(submission)
+        submission.album_key = album_key
         album = album_map.setdefault(album_key, Album(key=album_key, name=album_name, slug=slugify(album_name)))
         album.submissions.append(submission)
         album.artists.update(submission.artists)
@@ -81,13 +82,20 @@ def enrich_model(model: SiteModel) -> None:
             submission.finish_percentile = 1.0 if field_size <= 1 else 1.0 - ((current_place - 1) / (field_size - 1))
         round_obj.hall_of_fame_score = round_obj.average_points_per_song * math.log2(len(round_obj.submissions) + 1) + (round_obj.comments_count * 0.15)
 
+    model.round_winners = {
+        round_obj.key: winner
+        for round_obj in model.rounds
+        for winner in [_round_winner_submission(round_obj)]
+        if winner is not None
+    }
+
     for player in player_map.values():
         player.placement_history = sorted(player.submissions, key=lambda item: item.round.created_at)
         player.total_points = sum(sub.total_points for sub in player.submissions)
         player.average_points = player.total_points / len(player.submissions) if player.submissions else 0.0
         player.average_finish = sum(sub.place for sub in player.submissions) / len(player.submissions) if player.submissions else 0.0
         player.average_finish_percentile = sum(sub.finish_percentile for sub in player.submissions) / len(player.submissions) if player.submissions else 0.0
-        player.round_wins = sum(1 for round_obj in model.rounds if (_round_winner_submission(round_obj) and _round_winner_submission(round_obj).submitter_key == player.key))
+        player.round_wins = sum(1 for winner in model.round_winners.values() if winner.submitter_key == player.key)
         player.best_submission = max(player.submissions, key=lambda item: (item.total_points, item.finish_percentile), default=None)
         player.worst_submission = min(player.submissions, key=lambda item: (item.total_points, item.finish_percentile), default=None)
 
@@ -153,6 +161,9 @@ def enrich_model(model: SiteModel) -> None:
 
     for league in model.leagues:
         league.url = f"leagues/{league.slug}/index.html"
+    model.league_urls_by_name = {league.name: league.url for league in model.leagues}
+    model.player_urls_by_name = {player.name: player.url for player in model.players.values()}
+    model.artist_urls_by_name = {artist.name: artist.url for artist in model.artists.values()}
     for round_obj in model.rounds:
         round_obj.url = f"rounds/{round_obj.slug}/index.html"
     _assign_submission_urls(model)

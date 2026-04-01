@@ -2,14 +2,17 @@ from __future__ import annotations
 
 import csv
 import json
-import os
 import re
 import unicodedata
-from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
 
 from .models import League, Round, SiteModel, Submission, Vote
+
+
+COMMA_ARTIST_EXCEPTIONS = {
+    "Earth, Wind & Fire",
+}
 
 
 def slugify(value: str) -> str:
@@ -30,7 +33,7 @@ def canonical_key(value: str) -> str:
 def repair_mojibake(value: str) -> str:
     if not value:
         return value
-    suspicious = ("Ã", "Â", "â", "‚", "€™", "€", "\x92", "\x93", "\x94")
+    suspicious = ("Ã", "Â", "ƒ", "‚", "\x92", "\x93", "\x94")
     if any(token in value for token in suspicious):
         try:
             repaired = value.encode("cp1252", errors="ignore").decode("utf-8", errors="ignore")
@@ -43,7 +46,7 @@ def repair_mojibake(value: str) -> str:
 
 def canonical_text(value: str) -> str:
     value = repair_mojibake(value or "")
-    value = value.translate(str.maketrans({"‚": "é", "¢": "ó", "¤": "ñ"}))
+    value = value.replace("‚", ",").replace("¢", "›").replace("¤", "")
     value = value.replace("\u2018", "'").replace("\u2019", "'")
     value = value.replace("\u201c", '"').replace("\u201d", '"')
     value = value.replace("\u2013", "-").replace("\u2014", "-")
@@ -56,12 +59,7 @@ def split_artist_field(value: str) -> list[str]:
     text = canonical_text(value)
     if not text:
         return []
-    lowered = text.casefold()
-    if "," not in text:
-        return [text]
-    # Preserve band names such as "Earth, Wind & Fire" instead of treating commas
-    # as artist separators.
-    if "&" in text and not any(token in lowered for token in (" feat.", " featuring ", " with ")):
+    if "," not in text or text in COMMA_ARTIST_EXCEPTIONS:
         return [text]
     return [canonical_text(part) for part in text.split(",") if canonical_text(part)]
 
@@ -73,10 +71,7 @@ def parse_dt(value: str) -> datetime:
 def read_csv(path: Path) -> list[dict[str, str]]:
     with path.open("r", encoding="utf-8-sig", newline="") as handle:
         rows = list(csv.DictReader(handle))
-    cleaned: list[dict[str, str]] = []
-    for row in rows:
-        cleaned.append({canonical_text(key): canonical_text(val) for key, val in row.items()})
-    return cleaned
+    return [{canonical_text(key): canonical_text(val) for key, val in row.items()} for row in rows]
 
 
 def load_site_config(path: Path) -> dict[str, str]:
@@ -108,7 +103,7 @@ def load_model() -> SiteModel:
         model.site_description = config["description"]
     rounds_by_key: dict[str, Round] = {}
     submissions_by_key: dict[str, Submission] = {}
-    league_dirs = sorted([path for path in model.leagues_dir.iterdir() if path.is_dir()], key=lambda p: p.name.lower())
+    league_dirs = sorted((path for path in model.leagues_dir.iterdir() if path.is_dir()), key=lambda path: path.name.lower())
 
     for league_dir in league_dirs:
         league = League(key=league_dir.name, name=canonical_text(league_dir.name), slug=slugify(league_dir.name))
@@ -116,11 +111,11 @@ def load_model() -> SiteModel:
         rounds_rows = read_csv(league_dir / "rounds.csv")
         submissions_rows = read_csv(league_dir / "submissions.csv")
         votes_rows = read_csv(league_dir / "votes.csv")
-        raw_names = Counter()
+
         for row in competitors_rows:
-            raw_names[canonical_key(row["Name"])] += 1
-            league.competitors[row["ID"]] = canonical_text(row["Name"])
-            league.player_names.add(canonical_text(row["Name"]))
+            player_name = canonical_text(row["Name"])
+            league.competitors[row["ID"]] = player_name
+            league.player_names.add(player_name)
         league.total_votes = len(votes_rows)
 
         for row in rounds_rows:
@@ -146,7 +141,6 @@ def load_model() -> SiteModel:
         for row in submissions_rows:
             round_obj = rounds_by_key[f"{league.key}::{row['Round ID']}"]
             submitter_name = league.competitors.get(row["Submitter ID"], canonical_text(row["Submitter ID"]))
-            submitter_key = canonical_key(submitter_name)
             artists = split_artist_field(row["Artist(s)"])
             submission = Submission(
                 key=f"{league.key}::{row['Round ID']}::{row['Spotify URI']}",
@@ -158,7 +152,7 @@ def load_model() -> SiteModel:
                 album=canonical_text(row["Album"]),
                 artists=artists,
                 artist_display=", ".join(artists),
-                submitter_key=submitter_key,
+                submitter_key=canonical_key(submitter_name),
                 submitter_name=submitter_name,
                 created_at=parse_dt(row["Created"]),
                 comment=canonical_text(row.get("Comment", "")),
