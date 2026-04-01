@@ -5,8 +5,19 @@ from ..render import anchor, page_shell, section, stat_grid, table
 
 
 def render_albums_index(model: SiteModel) -> str:
-    rows = [[anchor("albums/index.html", album.url, album.name), str(len(album.submissions)), str(album.total_points), f"{album.average_points:.2f}", str(len(album.artists)), str(len(album.submitters))] for album in sorted(model.albums.values(), key=lambda item: (-item.total_points, -len(item.submissions), item.name.lower()))]
-    return page_shell(model, "Albums", section("Album Stats", table(["Album", "Appearances", "Points", "Average Points", "Artists", "Submitters"], rows)), model.site_dir / "albums" / "index.html")
+    artist_targets = {artist.name: artist.url for artist in model.artists.values()}
+    rows = [
+        [
+            anchor("albums/index.html", album.url, album.name),
+            ", ".join(anchor("albums/index.html", artist_targets[artist], artist) for artist in sorted(album.artists)),
+            str(len(album.submissions)),
+            str(album.total_points),
+            f"{album.average_points:.2f}",
+            str(len(album.submitters)),
+        ]
+        for album in sorted(model.albums.values(), key=lambda item: (-item.total_points, -len(item.submissions), item.name.lower()))
+    ]
+    return page_shell(model, "Albums", section("Album Stats", table(["Album", "Artist", "Appearances", "Points", "Average Points", "Submitters"], rows)), model.site_dir / "albums" / "index.html")
 
 
 def render_album_page(model: SiteModel, album: Album) -> str:
@@ -24,7 +35,7 @@ def render_album_page(model: SiteModel, album: Album) -> str:
     ]
     body = "".join(
         [
-            section("Album Totals", stat_grid([("Appearances", len(album.submissions)), ("Points", album.total_points), ("Average Points", album.average_points), ("Artists", len(album.artists)), ("Submitters", len(album.submitters)), ("Leagues", len(album.leagues))])),
+            section("Album Totals", stat_grid([("Appearances", len(album.submissions)), ("Points", album.total_points), ("Average Points", album.average_points), ("Submitters", len(album.submitters)), ("Leagues", len(album.leagues))])),
             section("Songs", table(["Song", "Artist", "Submitter", "Round", "League", "Points"], rows)),
         ]
     )
