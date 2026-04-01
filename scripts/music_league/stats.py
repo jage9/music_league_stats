@@ -120,7 +120,7 @@ def enrich_model(model: SiteModel) -> None:
             player_map[right_key].similar_voters.append(PlayerSimilarity(other_key=left_key, overlap=len(shared), similarity_score=similarity, average_gap=average_gap))
 
     for player in player_map.values():
-        player.similar_voters.sort(key=lambda item: (-item.similarity_score, -item.overlap, item.average_gap, item.other_key))
+        player.similar_voters.sort(key=lambda item: (-item.overlap, -item.similarity_score, item.average_gap, item.other_key))
         player.similar_voters = player.similar_voters[:8]
 
     for artist in artist_map.values():
@@ -175,7 +175,7 @@ def enrich_model(model: SiteModel) -> None:
             similarity,
             gap,
         )
-        for left, right, overlap, similarity, gap in sorted(similarity_pairs, key=lambda item: (-item[3], -item[2], item[4], item[0], item[1]))[:30]
+        for left, right, overlap, similarity, gap in sorted(similarity_pairs, key=lambda item: (-item[2], -item[3], item[4], item[0], item[1]))[:30]
     ]
     model.stats = {
         "league_count": len(model.leagues),

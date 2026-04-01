@@ -3,6 +3,8 @@ site/
 .venv/
 __pycache__/
 *.pyc
+AGENTS.md
+agents.md
 config.json
 uv.lock
 leagues/*
