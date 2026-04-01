@@ -18,6 +18,12 @@ def _round_winner_submission(round_obj) -> object | None:
     )[0]
 
 
+def _album_key(submission) -> str:
+    album_name = submission.album or "Unknown Album"
+    artist_part = "||".join(canonical_key(artist) for artist in sorted(set(submission.artists)))
+    return canonical_key(f"{album_name}||{artist_part}")
+
+
 def enrich_model(model: SiteModel) -> None:
     player_map: dict[str, Player] = {}
     artist_map: dict[str, Artist] = {}
@@ -52,7 +58,8 @@ def enrich_model(model: SiteModel) -> None:
             artist.submitters.add(submission.submitter_name)
 
         album_name = submission.album or "Unknown Album"
-        album = album_map.setdefault(canonical_key(album_name), Album(key=canonical_key(album_name), name=album_name, slug=slugify(album_name)))
+        album_key = _album_key(submission)
+        album = album_map.setdefault(album_key, Album(key=album_key, name=album_name, slug=slugify(album_name)))
         album.submissions.append(submission)
         album.artists.update(submission.artists)
         album.submitters.add(submission.submitter_name)

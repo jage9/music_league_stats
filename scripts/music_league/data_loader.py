@@ -52,6 +52,20 @@ def canonical_text(value: str) -> str:
     return value.strip()
 
 
+def split_artist_field(value: str) -> list[str]:
+    text = canonical_text(value)
+    if not text:
+        return []
+    lowered = text.casefold()
+    if "," not in text:
+        return [text]
+    # Preserve band names such as "Earth, Wind & Fire" instead of treating commas
+    # as artist separators.
+    if "&" in text and not any(token in lowered for token in (" feat.", " featuring ", " with ")):
+        return [text]
+    return [canonical_text(part) for part in text.split(",") if canonical_text(part)]
+
+
 def parse_dt(value: str) -> datetime:
     return datetime.fromisoformat(value.replace("Z", "+00:00")).astimezone(timezone.utc)
 
@@ -133,7 +147,7 @@ def load_model() -> SiteModel:
             round_obj = rounds_by_key[f"{league.key}::{row['Round ID']}"]
             submitter_name = league.competitors.get(row["Submitter ID"], canonical_text(row["Submitter ID"]))
             submitter_key = canonical_key(submitter_name)
-            artists = [canonical_text(part) for part in row["Artist(s)"].split(",") if canonical_text(part)]
+            artists = split_artist_field(row["Artist(s)"])
             submission = Submission(
                 key=f"{league.key}::{row['Round ID']}::{row['Spotify URI']}",
                 id=row["Spotify URI"].split(":")[-1],
