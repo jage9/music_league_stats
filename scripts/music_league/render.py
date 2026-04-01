@@ -28,6 +28,11 @@ def fmt_dt(value: datetime) -> str:
     return value.strftime("%B %d, %Y")
 
 
+def fmt_generated_dt(value: datetime) -> str:
+    formatted = value.strftime("%Y-%m-%d %H:%M:%S %Z")
+    return formatted.replace("Eastern Daylight Time", "EDT").replace("Eastern Standard Time", "EST")
+
+
 def rel_link(from_dir: Path, to_path: Path) -> str:
     return os.path.relpath(to_path, from_dir).replace("\\", "/")
 
@@ -96,7 +101,7 @@ def page_shell(model: SiteModel, title: str, body: str, page_path: Path, browser
     nav_html = "".join(f'<a href="{esc(rel_link(page_path.parent, target))}">{esc(label)}</a>' for label, target in nav_items)
     github_href = "https://www.github.com/jage9/music_league_stats"
     footer = (
-        f'<footer class="site-footer"><p>Generated {esc(model.generated_at.strftime("%Y-%m-%d %H:%M:%S %Z"))} '
+        f'<footer class="site-footer"><p>Generated {esc(fmt_generated_dt(model.generated_at))} '
         f'in {esc(f"{model.generation_seconds:.3f}")} seconds.</p>'
         f'<p>Another AI experiment from Jage. <a href="{esc(github_href)}" target="_blank" rel="noopener noreferrer">Github link</a></p></footer>'
     )

@@ -10,7 +10,18 @@ def render_albums_index(model: SiteModel) -> str:
 
 
 def render_album_page(model: SiteModel, album: Album) -> str:
-    rows = [[anchor(album.url, sub.url, sub.title), sub.artist_display, anchor(album.url, model.players[sub.submitter_key].url, sub.submitter_name), anchor(album.url, sub.round.url, sub.round.name), anchor(album.url, sub.league.url, sub.league.name), str(sub.total_points)] for sub in sorted(album.submissions, key=lambda item: (-item.total_points, item.title.lower()))]
+    artist_targets = {artist.name: artist.url for artist in model.artists.values()}
+    rows = [
+        [
+            anchor(album.url, sub.url, sub.title),
+            ", ".join(anchor(album.url, artist_targets[artist], artist) for artist in sub.artists),
+            anchor(album.url, model.players[sub.submitter_key].url, sub.submitter_name),
+            anchor(album.url, sub.round.url, sub.round.name),
+            anchor(album.url, sub.league.url, sub.league.name),
+            str(sub.total_points),
+        ]
+        for sub in sorted(album.submissions, key=lambda item: (-item.total_points, item.title.lower()))
+    ]
     body = "".join(
         [
             section("Album Totals", stat_grid([("Appearances", len(album.submissions)), ("Points", album.total_points), ("Average Points", album.average_points), ("Artists", len(album.artists)), ("Submitters", len(album.submitters)), ("Leagues", len(album.leagues))])),
