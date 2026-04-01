@@ -10,8 +10,8 @@ def render_songs_index(model: SiteModel) -> str:
     for sub in model.submissions:
         use_counts[sub.spotify_uri] = use_counts.get(sub.spotify_uri, 0) + 1
         use_points[sub.spotify_uri] = use_points.get(sub.spotify_uri, 0) + sub.total_points
-    rows = [[anchor("songs/index.html", sub.url, sub.title), sub.artist_display, anchor("songs/index.html", model.players[sub.submitter_key].url, sub.submitter_name), anchor("songs/index.html", sub.round.url, sub.round.name), anchor("songs/index.html", sub.league.url, sub.league.name), str(sub.total_points), str(sub.vote_count)] for sub in sorted(model.submissions, key=lambda item: (-use_counts[item.spotify_uri], -use_points[item.spotify_uri], -item.total_points, item.title.lower()))]
-    return page_shell(model, "Songs", section("Songs", table(["Song", "Artist", "Submitter", "Round", "League", "Points", "Voters"], rows)), model.site_dir / "songs" / "index.html")
+    rows = [[anchor("songs/index.html", sub.url, sub.title), sub.artist_display, anchor("songs/index.html", model.players[sub.submitter_key].url, sub.submitter_name), anchor("songs/index.html", sub.round.url, sub.round.name), anchor("songs/index.html", sub.league.url, sub.league.name), str(sub.total_points), str(sub.vote_count)] for sub in sorted(model.submissions, key=lambda item: (-use_counts[item.spotify_uri], -use_points[item.spotify_uri], item.title.lower(), item.round.created_at))]
+    return page_shell(model, "Songs", table(["Song", "Artist", "Submitter", "Round", "League", "Points", "Voters"], rows), model.site_dir / "songs" / "index.html")
 
 
 def render_song_page(model: SiteModel, submission: Submission) -> str:

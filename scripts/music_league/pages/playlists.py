@@ -10,7 +10,7 @@ def render_playlists_page(model: SiteModel) -> str:
     grouped = defaultdict(list)
     for round_obj in model.playlists:
         grouped[round_obj.league.name].append(round_obj)
-    sections = ['<section><h2>Spotify Playlists</h2><p>Links to Spotify playlists for all Music League rounds.</p></section>']
+    sections = ['<p>Links to Spotify playlists for all Music League rounds.</p>']
     for league_name, rounds in grouped.items():
         items = "".join(
             f'<li><a href="{round_obj.playlist_url}" target="_blank" rel="noopener noreferrer">{round_obj.name} ({len(round_obj.submissions)})</a><span class="meta">{fmt_dt(round_obj.created_at)}</span></li>'

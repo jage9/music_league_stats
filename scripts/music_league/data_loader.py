@@ -10,11 +10,6 @@ from pathlib import Path
 from .models import League, Round, SiteModel, Submission, Vote
 
 
-COMMA_ARTIST_EXCEPTIONS = {
-    "Earth, Wind & Fire",
-}
-
-
 def slugify(value: str) -> str:
     text = canonical_text(value).strip().lower()
     text = re.sub(r"[^a-z0-9]+", "-", text)
@@ -59,9 +54,26 @@ def split_artist_field(value: str) -> list[str]:
     text = canonical_text(value)
     if not text:
         return []
-    if "," not in text or text in COMMA_ARTIST_EXCEPTIONS:
+    if "," not in text:
+        return [text]
+    if _looks_like_single_band_name(text):
         return [text]
     return [canonical_text(part) for part in text.split(",") if canonical_text(part)]
+
+
+def _looks_like_single_band_name(text: str) -> bool:
+    if text.count(",") != 1 or text.count("&") != 1:
+        return False
+    left, right = [part.strip() for part in text.split(",", 1)]
+    if not left or not right or "&" not in right:
+        return False
+    first, second = [part.strip() for part in right.split("&", 1)]
+    tokens = [left, first, second]
+    return all(_is_single_name_token(token) for token in tokens)
+
+
+def _is_single_name_token(token: str) -> bool:
+    return bool(re.fullmatch(r"[A-Za-z0-9.'-]+", token))
 
 
 def parse_dt(value: str) -> datetime:

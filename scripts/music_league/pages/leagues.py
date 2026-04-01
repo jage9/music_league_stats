@@ -21,7 +21,7 @@ def render_leagues_index(model: SiteModel) -> str:
         f'<article class="panel"><h3>{anchor("leagues/index.html", league.url, league.name)}</h3><p>{fmt_dt(league.first_round_at)} to {fmt_dt(league.last_round_at)}</p><p>{len(league.rounds)} rounds, {len(league.player_names)} players, {league.total_submissions} submissions, {league.total_votes} votes.</p></article>'
         for league in model.latest_leagues
     )
-    return page_shell(model, "Leagues", section("League Directory", cards), model.site_dir / "leagues" / "index.html")
+    return page_shell(model, "Leagues", cards, model.site_dir / "leagues" / "index.html")
 
 
 def render_league_page(model: SiteModel, league: League) -> str:

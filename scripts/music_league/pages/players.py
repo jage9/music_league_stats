@@ -6,7 +6,7 @@ from ..render import anchor, fmt_dt, page_shell, section, stat_grid, table
 
 def render_players_index(model: SiteModel) -> str:
     rows = [[anchor("players/index.html", player.url, player.name), str(len(player.leagues)), str(len(player.submissions)), str(player.total_points), f"{player.average_points:.2f}", f"{player.average_finish_percentile * 100:.1f}%", str(player.round_wins)] for player in sorted(model.players.values(), key=lambda item: (-item.total_points, item.name.lower()))]
-    return page_shell(model, "Players", section("Players", table(["Player", "Leagues", "Submissions", "Points", "Average Points", "Avg Finish Percentile", "Wins"], rows)), model.site_dir / "players" / "index.html")
+    return page_shell(model, "Players", table(["Player", "Leagues", "Submissions", "Points", "Average Points", "Avg Finish Percentile", "Wins"], rows), model.site_dir / "players" / "index.html")
 
 
 def render_player_page(model: SiteModel, player: Player) -> str:
