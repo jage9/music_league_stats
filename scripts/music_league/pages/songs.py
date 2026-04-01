@@ -30,17 +30,22 @@ def render_songs_index(model: SiteModel) -> str:
             )
         )
         total_points = sum(sub.total_points for sub in submissions)
+        total_voters = sum(sub.vote_count for sub in submissions)
         rows.append(
             [
                 anchor("songs/index.html", representative.url, representative.title),
-                representative.artist_display,
+                ", ".join(
+                    anchor("songs/index.html", model.artist_urls_by_name[artist_name], artist_name)
+                    for artist_name in representative.artists
+                ),
                 submitter_links,
                 str(len(submissions)),
                 str(total_points),
+                str(total_voters),
                 f"{total_points / len(submissions):.2f}",
             ]
         )
-    return page_shell(model, "Songs", table(["Song", "Artist", "Submitters", "Submissions", "Points", "Average Points"], rows), model.site_dir / "songs" / "index.html")
+    return page_shell(model, "Songs", table(["Song", "Artist", "Submitters", "Submissions", "Points", "Voters", "Average Points"], rows), model.site_dir / "songs" / "index.html")
 
 
 def render_song_page(model: SiteModel, submission: Submission) -> str:
