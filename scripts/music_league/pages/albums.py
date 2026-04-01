@@ -1,0 +1,20 @@
+from __future__ import annotations
+
+from ..models import Album, SiteModel
+from ..render import anchor, page_shell, section, stat_grid, table
+
+
+def render_albums_index(model: SiteModel) -> str:
+    rows = [[anchor("albums/index.html", album.url, album.name), str(len(album.submissions)), str(album.total_points), f"{album.average_points:.2f}", str(len(album.artists)), str(len(album.submitters))] for album in sorted(model.albums.values(), key=lambda item: (-item.total_points, -len(item.submissions), item.name.lower()))]
+    return page_shell(model, "Albums", section("Album Stats", table(["Album", "Appearances", "Points", "Average Points", "Artists", "Submitters"], rows)), model.site_dir / "albums" / "index.html")
+
+
+def render_album_page(model: SiteModel, album: Album) -> str:
+    rows = [[anchor(album.url, sub.url, sub.title), sub.artist_display, anchor(album.url, model.players[sub.submitter_key].url, sub.submitter_name), anchor(album.url, sub.round.url, sub.round.name), anchor(album.url, sub.league.url, sub.league.name), str(sub.total_points)] for sub in sorted(album.submissions, key=lambda item: (-item.total_points, item.title.lower()))]
+    body = "".join(
+        [
+            section("Album Totals", stat_grid([("Appearances", len(album.submissions)), ("Points", album.total_points), ("Average Points", album.average_points), ("Artists", len(album.artists)), ("Submitters", len(album.submitters)), ("Leagues", len(album.leagues))])),
+            section("Songs", table(["Song", "Artist", "Submitter", "Round", "League", "Points"], rows)),
+        ]
+    )
+    return page_shell(model, album.name, body, model.site_dir / album.url)

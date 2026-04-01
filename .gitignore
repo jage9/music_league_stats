@@ -1,0 +1,9 @@
+site/
+.uv-cache/
+.venv/
+__pycache__/
+*.pyc
+config.json
+uv.lock
+leagues/*
+!leagues/.gitkeep
