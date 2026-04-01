@@ -161,7 +161,10 @@ def enrich_model(model: SiteModel) -> None:
     model.top_albums_by_points = sorted(model.albums.values(), key=lambda item: (-item.total_points, -len(item.submissions), item.name.lower()))[:30]
     model.top_albums_by_appearances = sorted(model.albums.values(), key=lambda item: (-len(item.submissions), -item.total_points, item.name.lower()))[:30]
     model.best_rounds = sorted(model.rounds, key=lambda item: (-item.average_points_per_song, -len(item.submissions), item.name.lower()))[:30]
-    model.hall_of_fame_rounds = sorted(model.rounds, key=lambda item: (-item.hall_of_fame_score, -item.average_points_per_song, item.name.lower()))[:30]
+    model.hall_of_fame_rounds = sorted(
+        model.rounds,
+        key=lambda item: (-len(item.submissions), -item.average_points_per_song, -(item.created_at.timestamp()), item.name.lower()),
+    )[:30]
     model.most_polarizing_songs = sorted([item for item in model.submissions if item.vote_count >= 5], key=lambda item: (-item.vote_stddev, -item.vote_range, -item.total_points, item.title.lower()))[:30]
     model.zero_point_songs = sorted([item for item in model.submissions if item.total_points == 0], key=lambda item: (item.round.created_at, item.title.lower()))
     model.top_similarity_pairs = [
