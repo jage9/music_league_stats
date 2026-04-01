@@ -1,17 +1,46 @@
 from __future__ import annotations
 
+from collections import Counter, defaultdict
+
 from ..models import SiteModel, Submission
 from ..render import anchor, page_shell, section, spotify_track_url, stat_grid_html, table
 
 
 def render_songs_index(model: SiteModel) -> str:
-    use_counts = {}
-    use_points = {}
-    for sub in model.submissions:
-        use_counts[sub.spotify_uri] = use_counts.get(sub.spotify_uri, 0) + 1
-        use_points[sub.spotify_uri] = use_points.get(sub.spotify_uri, 0) + sub.total_points
-    rows = [[anchor("songs/index.html", sub.url, sub.title), sub.artist_display, anchor("songs/index.html", model.players[sub.submitter_key].url, sub.submitter_name), anchor("songs/index.html", sub.round.url, sub.round.name), anchor("songs/index.html", sub.league.url, sub.league.name), str(sub.total_points), str(sub.vote_count)] for sub in sorted(model.submissions, key=lambda item: (-use_counts[item.spotify_uri], -use_points[item.spotify_uri], item.title.lower(), item.round.created_at))]
-    return page_shell(model, "Songs", table(["Song", "Artist", "Submitter", "Round", "League", "Points", "Voters"], rows), model.site_dir / "songs" / "index.html")
+    grouped_submissions: dict[str, list[Submission]] = defaultdict(list)
+    for submission in model.submissions:
+        grouped_submissions[submission.spotify_uri].append(submission)
+
+    rows = []
+    for spotify_uri, submissions in sorted(
+        grouped_submissions.items(),
+        key=lambda item: (
+            -len(item[1]),
+            -sum(sub.total_points for sub in item[1]),
+            item[1][0].title.lower(),
+        ),
+    ):
+        representative = min(submissions, key=lambda item: (item.round.created_at, item.title.lower(), item.submitter_name.lower()))
+        submitter_counts = Counter(sub.submitter_key for sub in submissions)
+        submitter_links = ", ".join(
+            anchor("songs/index.html", model.players[player_key].url, model.players[player_key].name)
+            for player_key, _count in sorted(
+                submitter_counts.items(),
+                key=lambda item: (-item[1], model.players[item[0]].name.lower()),
+            )
+        )
+        total_points = sum(sub.total_points for sub in submissions)
+        rows.append(
+            [
+                anchor("songs/index.html", representative.url, representative.title),
+                representative.artist_display,
+                submitter_links,
+                str(len(submissions)),
+                str(total_points),
+                f"{total_points / len(submissions):.2f}",
+            ]
+        )
+    return page_shell(model, "Songs", table(["Song", "Artist", "Submitters", "Submissions", "Points", "Average Points"], rows), model.site_dir / "songs" / "index.html")
 
 
 def render_song_page(model: SiteModel, submission: Submission) -> str:
