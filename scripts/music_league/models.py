@@ -160,6 +160,7 @@ class SiteModel:
     latest_leagues: list[League] = field(default_factory=list)
     top_submissions: list[Submission] = field(default_factory=list)
     top_players: list[Player] = field(default_factory=list)
+    trending_players: list[Player] = field(default_factory=list)
     best_average_finish_players: list[Player] = field(default_factory=list)
     top_artists_by_points: list[Artist] = field(default_factory=list)
     top_artists_by_appearances: list[Artist] = field(default_factory=list)

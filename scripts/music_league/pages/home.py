@@ -32,6 +32,18 @@ def render_home(model: SiteModel) -> str:
         [anchor("index.html", player.url, player.name), str(player.total_points), str(len(player.submissions)), f"{player.average_points:.2f}", str(player.round_wins)]
         for player in model.top_players[:12]
     ]
+    recent_rounds = sorted(model.rounds, key=lambda item: item.created_at, reverse=True)[:5]
+    recent_round_keys = {round_obj.key for round_obj in recent_rounds}
+    trending_rows = [
+        [
+            anchor("index.html", player.url, player.name),
+            str(sum(1 for sub in player.submissions if sub.round.key in recent_round_keys)),
+            str(sum(sub.total_points for sub in player.submissions if sub.round.key in recent_round_keys)),
+            f"{sum(sub.total_points for sub in player.submissions if sub.round.key in recent_round_keys) / sum(1 for sub in player.submissions if sub.round.key in recent_round_keys):.2f}",
+            str(sum(1 for winner in model.round_winners.values() if winner.submitter_key == player.key and winner.round.key in recent_round_keys)),
+        ]
+        for player in model.trending_players[:10]
+    ]
     submission_rows = [
         [anchor("index.html", sub.url, sub.title), sub.artist_display, anchor("index.html", sub.round.url, sub.round.name), anchor("index.html", model.players[sub.submitter_key].url, sub.submitter_name), str(sub.total_points)]
         for sub in model.top_submissions[:12]
@@ -55,6 +67,7 @@ def render_home(model: SiteModel) -> str:
             section("Global Totals", totals),
             section("League Timeline", table(["League", "First Round", "Last Round", "Rounds", "Players"], latest_rows)),
             linked("players/index.html", "Career Leaderboard") + table(["Player", "Points", "Submissions", "Average Points", "Round Wins"], leaderboard_rows) + "</section>",
+            linked("players/index.html", "Trending (Last 5 Rounds)") + f"<p>Based on the most recent 5 rounds across all leagues: {', '.join(anchor('index.html', round_obj.url, round_obj.name) for round_obj in recent_rounds)}.</p>" + table(["Player", "Submissions", "Points", "Average Points", "Wins"], trending_rows) + "</section>",
             linked("songs/index.html", "Best Single Submissions") + table(["Song", "Artist", "Round", "Submitter", "Points"], submission_rows) + "</section>",
             linked("artists/index.html", "Most Successful Artists (min. 3 submissions)") + table(["Artist", "Submissions", "Points", "Average Points"], artist_rows) + "</section>",
             linked("albums/index.html", "Top Albums") + table(["Album", "Appearances", "Points", "Average Points"], album_rows) + "</section>",

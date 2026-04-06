@@ -24,6 +24,14 @@ def _album_key(submission) -> str:
     return canonical_key(f"{album_name}||{artist_part}")
 
 
+def _player_best_submission(player: Player):
+    return min(player.submissions, key=lambda item: (item.place, -item.total_points, -item.vote_count, item.round.created_at, item.title.lower()), default=None)
+
+
+def _player_worst_submission(player: Player):
+    return max(player.submissions, key=lambda item: (item.place, -item.total_points, item.round.created_at, item.title.lower()), default=None)
+
+
 def enrich_model(model: SiteModel) -> None:
     player_map: dict[str, Player] = {}
     artist_map: dict[str, Artist] = {}
@@ -96,8 +104,8 @@ def enrich_model(model: SiteModel) -> None:
         player.average_finish = sum(sub.place for sub in player.submissions) / len(player.submissions) if player.submissions else 0.0
         player.average_finish_percentile = sum(sub.finish_percentile for sub in player.submissions) / len(player.submissions) if player.submissions else 0.0
         player.round_wins = sum(1 for winner in model.round_winners.values() if winner.submitter_key == player.key)
-        player.best_submission = max(player.submissions, key=lambda item: (item.total_points, item.finish_percentile), default=None)
-        player.worst_submission = min(player.submissions, key=lambda item: (item.total_points, item.finish_percentile), default=None)
+        player.best_submission = _player_best_submission(player)
+        player.worst_submission = _player_worst_submission(player)
 
         artist_counter = Counter()
         artist_points = Counter()
@@ -172,6 +180,15 @@ def enrich_model(model: SiteModel) -> None:
     model.latest_leagues = sorted([league for league in model.leagues if league.last_round_at], key=lambda item: item.last_round_at or datetime.min.replace(tzinfo=timezone.utc), reverse=True)
     model.top_submissions = sorted(model.submissions, key=lambda item: (-item.total_points, -item.vote_count, item.title.lower()))[:30]
     model.top_players = sorted(model.players.values(), key=lambda item: (-item.total_points, -item.average_points, item.name.lower()))[:30]
+    recent_round_keys = {round_obj.key for round_obj in sorted(model.rounds, key=lambda item: item.created_at, reverse=True)[:5]}
+    model.trending_players = sorted(
+        [player for player in model.players.values() if any(sub.round.key in recent_round_keys for sub in player.submissions)],
+        key=lambda item: (
+            -sum(sub.total_points for sub in item.submissions if sub.round.key in recent_round_keys),
+            -sum(1 for sub in item.submissions if sub.round.key in recent_round_keys),
+            item.name.lower(),
+        ),
+    )
     model.best_average_finish_players = sorted([item for item in model.players.values() if len(item.submissions) >= 5], key=lambda item: (-item.average_finish_percentile, -item.average_points, item.name.lower()))[:30]
     model.top_artists_by_points = sorted(model.artists.values(), key=lambda item: (-item.total_points, -len(item.submissions), item.name.lower()))[:30]
     model.top_artists_by_appearances = sorted(model.artists.values(), key=lambda item: (-len(item.submissions), -item.total_points, item.name.lower()))[:30]
