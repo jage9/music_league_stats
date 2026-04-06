@@ -251,6 +251,7 @@ def write_robots_txt(model: SiteModel) -> None:
 
 
 def build_site(model: SiteModel) -> None:
+    from .pages.changelog import render_changelog_page
     from .pages.albums import render_album_page, render_albums_index
     from .pages.artists import render_artist_page, render_artists_index
     from .pages.home import render_home
@@ -276,6 +277,7 @@ def build_site(model: SiteModel) -> None:
     write_page(model.site_dir / "songs" / "index.html", render_songs_index(model))
     write_page(model.site_dir / "playlists" / "index.html", render_playlists_page(model))
     write_page(model.site_dir / "stats" / "index.html", render_stats_index(model))
+    write_page(model.site_dir / "changelog" / "index.html", render_changelog_page(model))
 
     for league in model.leagues:
         write_page(model.site_dir / league.url, render_league_page(model, league))

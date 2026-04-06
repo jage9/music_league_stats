@@ -94,6 +94,7 @@ def load_site_config(path: Path) -> dict[str, str]:
     return {
         "title": canonical_text(str(raw.get("title", ""))),
         "description": canonical_text(str(raw.get("description", ""))),
+        "version": canonical_text(str(raw.get("version", ""))),
     }
 
 
@@ -113,6 +114,8 @@ def load_model() -> SiteModel:
         model.site_title = config["title"]
     if config.get("description"):
         model.site_description = config["description"]
+    if config.get("version"):
+        model.site_version = config["version"]
     rounds_by_key: dict[str, Round] = {}
     submissions_by_key: dict[str, Submission] = {}
     league_dirs = sorted((path for path in model.leagues_dir.iterdir() if path.is_dir()), key=lambda path: path.name.lower())

@@ -72,6 +72,7 @@ def render_home(model: SiteModel) -> str:
             linked("artists/index.html", "Most Successful Artists (min. 3 submissions)") + table(["Artist", "Submissions", "Points", "Average Points"], artist_rows) + "</section>",
             linked("albums/index.html", "Top Albums") + table(["Album", "Appearances", "Points", "Average Points"], album_rows) + "</section>",
             "<section><h2>Most Popular Rounds</h2><p>These are the rounds that combined strong participation and strong average scoring.</p>" + table(["Round", "League", "Submissions", "Avg Points Per Song"], popular_round_rows) + "</section>",
+            f'<section><h2>Change Log</h2><p>{model.site_version} <a href="changelog/index.html">View Changelog</a></p></section>',
         ]
     )
     return page_shell(model, model.site_title, body, model.site_dir / "index.html")

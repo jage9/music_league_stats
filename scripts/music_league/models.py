@@ -145,6 +145,7 @@ class SiteModel:
     sample_config_path: Path
     site_title: str = "Music League Archive"
     site_description: str = ""
+    site_version: str = "v0.1"
     leagues: list[League] = field(default_factory=list)
     rounds: list[Round] = field(default_factory=list)
     submissions: list[Submission] = field(default_factory=list)
