@@ -75,10 +75,10 @@ def render_league_page(model: SiteModel, league: League) -> str:
         [
             section("Overview", stat_grid([("Rounds", len(league.rounds)), ("Players", len(league.player_names)), ("Submissions", league.total_submissions), ("Votes", league.total_votes), ("Points Awarded", league.total_points)])),
             section("Chronology", f"<p>{fmt_dt(league.first_round_at)} to {fmt_dt(league.last_round_at)}</p>"),
-            section("Rounds", table(["Round", "Created", "Winner", "Submissions", "Avg Points Per Song", "Playlist"], rounds_rows)),
-            section("Leaderboard", table(["Player", "Submissions", "Points", "Average Points", "Wins"], player_rows)),
-            section("Standout Artists", table(["Artist", "Appearances", "Points"], artist_rows)),
-            section("Notable Songs", table(["Song", "Artist", "Submitter", "Points", "Round"], song_rows)),
+            section("Rounds", table(["Round", "Created", "Winner", "Submissions", "Avg Points Per Song", "Playlist"], rounds_rows, sortable={"columns": {0: "text", 1: "date", 2: "text", 3: "number", 4: "number", 5: "text"}, "default_column": 1, "default_direction": "desc"})),
+            section("Leaderboard", table(["Player", "Submissions", "Points", "Average Points", "Wins"], player_rows, sortable={"columns": {0: "text", 1: "number", 2: "number", 3: "number", 4: "number"}, "default_column": 2, "default_direction": "desc"})),
+            section("Standout Artists", table(["Artist", "Appearances", "Points"], artist_rows, sortable={"columns": {0: "text", 1: "number", 2: "number"}, "default_column": 2, "default_direction": "desc"})),
+            section("Notable Songs", table(["Song", "Artist", "Submitter", "Points", "Round"], song_rows, sortable={"columns": {0: "text", 1: "text", 2: "text", 3: "number", 4: "text"}, "default_column": 3, "default_direction": "desc"})),
         ]
     )
     return page_shell(model, league.name, body, model.site_dir / league.url)

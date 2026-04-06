@@ -65,13 +65,13 @@ def render_home(model: SiteModel) -> str:
         [
             intro,
             section("Global Totals", totals),
-            section("League Timeline", table(["League", "First Round", "Last Round", "Rounds", "Players"], latest_rows)),
-            linked("players/index.html", "Career Leaderboard") + table(["Player", "Points", "Submissions", "Average Points", "Round Wins"], leaderboard_rows) + "</section>",
-            linked("players/index.html", "Trending (Last 5 Rounds)") + f"<p>Based on the most recent 5 rounds across all leagues: {', '.join(anchor('index.html', round_obj.url, round_obj.name) for round_obj in recent_rounds)}.</p>" + table(["Player", "Submissions", "Points", "Average Points", "Wins"], trending_rows) + "</section>",
-            linked("songs/index.html", "Best Single Submissions") + table(["Song", "Artist", "Round", "Submitter", "Points"], submission_rows) + "</section>",
-            linked("artists/index.html", "Most Successful Artists (min. 3 submissions)") + table(["Artist", "Submissions", "Points", "Average Points"], artist_rows) + "</section>",
-            linked("albums/index.html", "Top Albums") + table(["Album", "Appearances", "Points", "Average Points"], album_rows) + "</section>",
-            "<section><h2>Most Popular Rounds</h2><p>These are the rounds that combined strong participation and strong average scoring.</p>" + table(["Round", "League", "Submissions", "Avg Points Per Song"], popular_round_rows) + "</section>",
+            section("League Timeline", table(["League", "First Round", "Last Round", "Rounds", "Players"], latest_rows, sortable={"columns": {0: "text", 1: "date", 2: "date", 3: "number", 4: "number"}, "default_column": 2, "default_direction": "desc"})),
+            linked("players/index.html", "Career Leaderboard") + table(["Player", "Points", "Submissions", "Average Points", "Round Wins"], leaderboard_rows, sortable={"columns": {0: "text", 1: "number", 2: "number", 3: "number", 4: "number"}, "default_column": 1, "default_direction": "desc"}) + "</section>",
+            linked("players/index.html", "Trending (Last 5 Rounds)") + f"<p>Based on the most recent 5 rounds across all leagues: {', '.join(anchor('index.html', round_obj.url, round_obj.name) for round_obj in recent_rounds)}.</p>" + table(["Player", "Submissions", "Points", "Average Points", "Wins"], trending_rows, sortable={"columns": {0: "text", 1: "number", 2: "number", 3: "number", 4: "number"}, "default_column": 2, "default_direction": "desc"}) + "</section>",
+            linked("songs/index.html", "Best Single Submissions") + table(["Song", "Artist", "Round", "Submitter", "Points"], submission_rows, sortable={"columns": {0: "text", 1: "text", 2: "text", 3: "text", 4: "number"}, "default_column": 4, "default_direction": "desc"}) + "</section>",
+            linked("artists/index.html", "Most Successful Artists (min. 3 submissions)") + table(["Artist", "Submissions", "Points", "Average Points"], artist_rows, sortable={"columns": {0: "text", 1: "number", 2: "number", 3: "number"}, "default_column": 3, "default_direction": "desc"}) + "</section>",
+            linked("albums/index.html", "Top Albums") + table(["Album", "Appearances", "Points", "Average Points"], album_rows, sortable={"columns": {0: "text", 1: "number", 2: "number", 3: "number"}, "default_column": 2, "default_direction": "desc"}) + "</section>",
+            "<section><h2>Most Popular Rounds</h2><p>These are the rounds that combined strong participation and strong average scoring.</p>" + table(["Round", "League", "Submissions", "Avg Points Per Song"], popular_round_rows, sortable={"columns": {0: "text", 1: "text", 2: "number", 3: "number"}, "default_column": 2, "default_direction": "desc"}) + "</section>",
         ]
     )
     return page_shell(model, model.site_title, body, model.site_dir / "index.html")

@@ -10,9 +10,9 @@ def render_stats_index(model: SiteModel) -> str:
     zero_rows = [[anchor("stats/index.html", sub.url, sub.title), sub.artist_display, anchor("stats/index.html", model.players[sub.submitter_key].url, sub.submitter_name), anchor("stats/index.html", sub.round.url, sub.round.name), anchor("stats/index.html", sub.league.url, sub.league.name)] for sub in model.zero_point_songs]
     body = "".join(
         [
-            section("Best Average Finish", table(["Player", "Submissions", "Finish Percentile", "Wins"], finish_rows)),
-            section("Voting Similarity", "<p>Similarity is based on how closely two players scored the same songs when both voted on them. Smaller average gap means more alignment.</p>" + table(["Player A", "Player B", "Shared Votes", "Similarity", "Average Gap"], similarity_rows)),
-            section("Zero-Point List", table(["Song", "Artist", "Submitter", "Round", "League"], zero_rows)),
+            section("Best Average Finish", table(["Player", "Submissions", "Finish Percentile", "Wins"], finish_rows, sortable={"columns": {0: "text", 1: "number", 2: "number", 3: "number"}, "default_column": 2, "default_direction": "desc"})),
+            section("Voting Similarity", "<p>Similarity is based on how closely two players scored the same songs when both voted on them. Smaller average gap means more alignment.</p>" + table(["Player A", "Player B", "Shared Votes", "Similarity", "Average Gap"], similarity_rows, sortable={"columns": {0: "text", 1: "text", 2: "number", 3: "number", 4: "number"}, "default_column": 2, "default_direction": "desc"})),
+            section("Zero-Point List", table(["Song", "Artist", "Submitter", "Round", "League"], zero_rows, sortable={"columns": {0: "text", 1: "text", 2: "text", 3: "text", 4: "text"}, "default_column": 0, "default_direction": "asc"})),
         ]
     )
     return page_shell(model, "Stats Extras", body, model.site_dir / "stats" / "index.html")

@@ -20,11 +20,11 @@ def render_players_index(model: SiteModel) -> str:
     ]
     body = "".join(
         [
-            table(["Player", "Leagues", "Submissions", "Points", "Average Points", "Avg Finish Percentile", "Wins"], rows),
+            table(["Player", "Leagues", "Submissions", "Points", "Average Points", "Avg Finish Percentile", "Wins"], rows, sortable={"columns": {0: "text", 1: "number", 2: "number", 3: "number", 4: "number", 5: "number", 6: "number"}, "default_column": 3, "default_direction": "desc"}),
             section(
                 "Trending (Last 5 Rounds)",
                 f"<p>Based on the most recent 5 rounds across all leagues: {', '.join(anchor('players/index.html', round_obj.url, round_obj.name) for round_obj in recent_rounds)}.</p>"
-                + table(["Player", "Submissions", "Points", "Average Points", "Wins"], trending_rows),
+                + table(["Player", "Submissions", "Points", "Average Points", "Wins"], trending_rows, sortable={"columns": {0: "text", 1: "number", 2: "number", 3: "number", 4: "number"}, "default_column": 2, "default_direction": "desc"}),
             ),
         ]
     )
@@ -57,16 +57,16 @@ def render_player_page(model: SiteModel, player: Player) -> str:
     body = "".join(
         [
             section("Career Totals", stat_grid([("Leagues", len(player.leagues)), ("Submissions", len(player.submissions)), ("Points", player.total_points), ("Average Points", player.average_points), ("Average Finish", player.average_finish), ("Avg Finish Percentile", f"{player.average_finish_percentile * 100:.1f}%"), ("Round Wins", player.round_wins)])),
-            section("Per-League Splits", table(["League", "Submissions", "Points", "Average Points"], per_league)),
-            section("Best And Worst Finishes", table(["Type", "Song", "Round", "Place", "Points"], best_rows + worst_rows if best and worst else [])),
+            section("Per-League Splits", table(["League", "Submissions", "Points", "Average Points"], per_league, sortable={"columns": {0: "text", 1: "number", 2: "number", 3: "number"}, "default_column": 2, "default_direction": "desc"})),
+            section("Best And Worst Finishes", table(["Type", "Song", "Round", "Place", "Points"], best_rows + worst_rows if best and worst else [], sortable={"columns": {0: "text", 1: "text", 2: "text", 3: "number", 4: "number"}, "default_column": 3, "default_direction": "asc"})),
             section(
                 "Trending (Last 5 Rounds)",
                 f"<p>Based on the most recent 5 rounds across all leagues: {', '.join(anchor(player.url, round_obj.url, round_obj.name) for round_obj in recent_rounds)}.</p>"
-                + table(["Player", "Submissions", "Points", "Average Points", "Wins"], trending_rows),
+                + table(["Player", "Submissions", "Points", "Average Points", "Wins"], trending_rows, sortable={"columns": {0: "text", 1: "number", 2: "number", 3: "number", 4: "number"}, "default_column": 2, "default_direction": "desc"}),
             ),
-            section("Placement History", table(["Date", "Round", "Song", "Place", "Points", "Finish Percentile"], placement_rows)),
-            section("Signature Artists", table(["Artist", "Appearances", "Points"], signature_rows)),
-            section("Most Similar Voters", "<p>This compares only songs that both players voted on and measures how close their point assignments were.</p>" + (table(["Player", "Shared Votes", "Similarity", "Average Gap"], similar_rows) if similar_rows else "<p>Not enough overlapping votes to compute similarity.</p>")),
+            section("Placement History", table(["Date", "Round", "Song", "Place", "Points", "Finish Percentile"], placement_rows, sortable={"columns": {0: "date", 1: "text", 2: "text", 3: "number", 4: "number", 5: "number"}, "default_column": 0, "default_direction": "asc"})),
+            section("Signature Artists", table(["Artist", "Appearances", "Points"], signature_rows, sortable={"columns": {0: "text", 1: "number", 2: "number"}, "default_column": 1, "default_direction": "desc"})),
+            section("Most Similar Voters", "<p>This compares only songs that both players voted on and measures how close their point assignments were.</p>" + (table(["Player", "Shared Votes", "Similarity", "Average Gap"], similar_rows, sortable={"columns": {0: "text", 1: "number", 2: "number", 3: "number"}, "default_column": 1, "default_direction": "desc"}) if similar_rows else "<p>Not enough overlapping votes to compute similarity.</p>")),
         ]
     )
     return page_shell(model, player.name, body, model.site_dir / player.url)

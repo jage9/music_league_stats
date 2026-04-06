@@ -77,10 +77,119 @@ def tagged_links(items: list[tuple[str, str]]) -> str:
     return "<p class=\"tag-list\">" + "".join(f'<a class="tag" href="{esc(href)}">{esc(label)}</a>' for label, href in items) + "</p>"
 
 
-def table(headers: list[str], rows: list[list[str]]) -> str:
-    head = "".join(f"<th>{esc(header)}</th>" for header in headers)
+def table(headers: list[str], rows: list[list[str]], sortable: dict[str, object] | None = None) -> str:
+    column_types = sortable.get("columns", {}) if sortable else {}
+    sortable_columns = set(column_types.keys()) if sortable else set()
+    default_column = int(sortable.get("default_column", 0)) if sortable else 0
+    default_direction = str(sortable.get("default_direction", "asc")) if sortable else "asc"
+    table_attrs = ""
+    if sortable:
+        table_attrs = (
+            ' class="sortable-table"'
+            + f' data-default-sort-column="{default_column}"'
+            + f' data-default-sort-direction="{esc(default_direction)}"'
+        )
+    head_parts = []
+    for index, header in enumerate(headers):
+        if index in sortable_columns:
+            direction_note = "descending" if index == default_column and default_direction == "desc" else "ascending"
+            aria_sort = ("descending" if default_direction == "desc" else "ascending") if index == default_column else "none"
+            head_parts.append(
+                f'<th scope="col" aria-sort="{esc(aria_sort)}">'
+                f'<button type="button" class="sort-button" data-column="{index}" data-sort-type="{esc(str(column_types.get(index, "text")))}" data-direction="{esc(default_direction if index == default_column else "asc")}">'
+                f'<span class="sort-label">{esc(header)}</span>'
+                f'<span class="sort-indicator" aria-hidden="true">{("v" if default_direction == "desc" else "^") if index == default_column else "<>"}</span>'
+                f'<span class="sr-only">{esc(f"Sort by {header}" + (f", currently sorted {direction_note}" if index == default_column else ""))}</span>'
+                f"</button></th>"
+            )
+        else:
+            head_parts.append(f'<th scope="col">{esc(header)}</th>')
+    head = "".join(head_parts)
     body = "".join("<tr>" + "".join(f"<td>{cell}</td>" for cell in row) + "</tr>" for row in rows)
-    return f'<div class="table-wrap"><table><thead><tr>{head}</tr></thead><tbody>{body}</tbody></table></div>'
+    return f'<div class="table-wrap"><table{table_attrs}><thead><tr>{head}</tr></thead><tbody>{body}</tbody></table></div>'
+
+
+SORTER_SCRIPT = """
+<script>
+(function () {
+  function parseValue(text, type) {
+    const normalized = text.trim();
+    if (type === "number") {
+      const value = Number.parseFloat(normalized.replace(/,/g, "").replace(/%/g, ""));
+      return Number.isNaN(value) ? Number.NEGATIVE_INFINITY : value;
+    }
+    if (type === "date") {
+      const value = Date.parse(normalized);
+      return Number.isNaN(value) ? Number.NEGATIVE_INFINITY : value;
+    }
+    return normalized.toLocaleLowerCase();
+  }
+
+  function updateHeaderState(table, columnIndex, direction) {
+    const headers = Array.from(table.querySelectorAll("thead th"));
+    headers.forEach((header, index) => {
+      const button = header.querySelector(".sort-button");
+      if (!button) {
+        return;
+      }
+      const active = index === columnIndex;
+      header.setAttribute("aria-sort", active ? (direction === "asc" ? "ascending" : "descending") : "none");
+      button.dataset.direction = active && direction === "asc" ? "desc" : "asc";
+      const indicator = button.querySelector(".sort-indicator");
+      if (indicator) {
+        indicator.textContent = active ? (direction === "asc" ? "^" : "v") : "<>";
+      }
+      const srOnly = button.querySelector(".sr-only");
+      if (srOnly) {
+        const label = button.querySelector(".sort-label")?.textContent || "column";
+        srOnly.textContent = active ? `Sort by ${label}, currently sorted ${direction === "asc" ? "ascending" : "descending"}` : `Sort by ${label}`;
+      }
+    });
+  }
+
+  document.querySelectorAll("table.sortable-table").forEach((table) => {
+    const tbody = table.tBodies[0];
+    if (!tbody) {
+      return;
+    }
+    const rows = Array.from(tbody.rows);
+    const defaultColumn = Number.parseInt(table.dataset.defaultSortColumn || "0", 10);
+    const defaultDirection = table.dataset.defaultSortDirection === "desc" ? "desc" : "asc";
+    const buttons = table.querySelectorAll(".sort-button");
+
+    function sortRows(columnIndex, direction) {
+      const button = table.querySelector(`.sort-button[data-column="${columnIndex}"]`);
+      const type = button?.dataset.sortType || "text";
+      rows.sort((leftRow, rightRow) => {
+        const leftText = leftRow.cells[columnIndex]?.textContent || "";
+        const rightText = rightRow.cells[columnIndex]?.textContent || "";
+        const leftValue = parseValue(leftText, type);
+        const rightValue = parseValue(rightText, type);
+        if (leftValue < rightValue) {
+          return direction === "asc" ? -1 : 1;
+        }
+        if (leftValue > rightValue) {
+          return direction === "asc" ? 1 : -1;
+        }
+        return 0;
+      });
+      tbody.replaceChildren(...rows);
+      updateHeaderState(table, columnIndex, direction);
+    }
+
+    buttons.forEach((button) => {
+      button.addEventListener("click", function () {
+        const columnIndex = Number.parseInt(button.dataset.column || "0", 10);
+        const direction = button.dataset.direction === "desc" ? "desc" : "asc";
+        sortRows(columnIndex, direction);
+      });
+    });
+
+    sortRows(defaultColumn, defaultDirection);
+  });
+}());
+</script>
+"""
 
 
 def page_shell(model: SiteModel, title: str, body: str, page_path: Path, browser_title: str | None = None) -> str:
@@ -121,6 +230,7 @@ def page_shell(model: SiteModel, title: str, body: str, page_path: Path, browser
   </header>
   <main class="page">{body}</main>
   {footer}
+  {SORTER_SCRIPT}
 </body>
 </html>
 """

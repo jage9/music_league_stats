@@ -45,7 +45,7 @@ def render_songs_index(model: SiteModel) -> str:
                 f"{total_points / len(submissions):.2f}",
             ]
         )
-    return page_shell(model, "Songs", table(["Song", "Artist", "Submitters", "Submissions", "Points", "Voters", "Average Points"], rows), model.site_dir / "songs" / "index.html")
+    return page_shell(model, "Songs", table(["Song", "Artist", "Submitters", "Submissions", "Points", "Voters", "Average Points"], rows, sortable={"columns": {0: "text", 1: "text", 2: "text", 3: "number", 4: "number", 5: "number", 6: "number"}, "default_column": 3, "default_direction": "desc"}), model.site_dir / "songs" / "index.html")
 
 
 def render_song_page(model: SiteModel, submission: Submission) -> str:
@@ -97,7 +97,7 @@ def render_song_page(model: SiteModel, submission: Submission) -> str:
                         ]
                     ),
                     f"<section><h3>Submission Comment</h3><p>{item.comment or 'No submission comment provided.'}</p></section>",
-                    f"<section><h3>Vote Breakdown</h3>{table(['Voter', 'Points', 'Comment'], vote_rows)}</section>",
+                    f"<section><h3>Vote Breakdown</h3>{table(['Voter', 'Points', 'Comment'], vote_rows, sortable={'columns': {0: 'text', 1: 'number', 2: 'text'}, 'default_column': 1, 'default_direction': 'desc'})}</section>",
                     "</section>",
                 ]
             )

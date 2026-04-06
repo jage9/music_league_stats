@@ -185,6 +185,48 @@ thead th {
   color: var(--muted);
 }
 
+.sort-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  cursor: pointer;
+}
+
+.sort-button:hover .sort-label,
+.sort-button:focus-visible .sort-label {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+.sort-button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 0.15rem;
+  border-radius: 0.2rem;
+}
+
+.sort-indicator {
+  font-size: 0.9em;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 tbody tr:nth-child(even) {
   background: var(--table-alt);
 }

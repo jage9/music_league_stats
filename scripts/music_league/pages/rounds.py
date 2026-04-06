@@ -101,7 +101,7 @@ def render_round_page(model: SiteModel, round_obj: Round) -> str:
             section("Round Summary", stat_grid([("Created", fmt_dt(round_obj.created_at)), ("Submissions", len(round_obj.submissions)), ("Votes", len(round_obj.votes)), ("Total Points", round_obj.total_points), ("Avg Points Per Song", round_obj.average_points_per_song)])),
             section("Prompt", f"<p>{round_obj.description or 'No description provided.'}</p>"),
             section("Spotify Playlist", f'<p><a href="{round_obj.playlist_url}" target="_blank" rel="noopener noreferrer">{round_obj.playlist_url}</a></p>' if round_obj.playlist_url else "<p>No playlist URL was available.</p>"),
-            section("Results", table(["Place", "Song", "Artist", "Submitter", "Points", "Voters", "Average Vote"], results)),
+            section("Results", table(["Place", "Song", "Artist", "Submitter", "Points", "Voters", "Average Vote"], results, sortable={"columns": {0: "number", 1: "text", 2: "text", 3: "text", 4: "number", 5: "number", 6: "number"}, "default_column": 0, "default_direction": "asc"})),
             section("Submission Notes", submission_notes),
             section("Vote Comments", "<p>No vote comments were captured for this round.</p>" if not comment_groups else "".join(comment_groups)),
         ]

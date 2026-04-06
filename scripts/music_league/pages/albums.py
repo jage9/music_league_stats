@@ -17,7 +17,7 @@ def render_albums_index(model: SiteModel) -> str:
         ]
         for album in sorted(model.albums.values(), key=lambda item: (-len(item.submissions), -item.total_points, item.name.lower()))
     ]
-    return page_shell(model, "Albums", table(["Album", "Artist", "Appearances", "Points", "Average Points", "Submitters"], rows), model.site_dir / "albums" / "index.html")
+    return page_shell(model, "Albums", table(["Album", "Artist", "Appearances", "Points", "Average Points", "Submitters"], rows, sortable={"columns": {0: "text", 1: "text", 2: "number", 3: "number", 4: "number", 5: "number"}, "default_column": 2, "default_direction": "desc"}), model.site_dir / "albums" / "index.html")
 
 
 def render_album_page(model: SiteModel, album: Album) -> str:
@@ -36,7 +36,7 @@ def render_album_page(model: SiteModel, album: Album) -> str:
     body = "".join(
         [
             section("Album Totals", stat_grid([("Appearances", len(album.submissions)), ("Points", album.total_points), ("Average Points", album.average_points), ("Submitters", len(album.submitters)), ("Leagues", len(album.leagues))])),
-            section("Songs", table(["Song", "Artist", "Submitter", "Round", "League", "Points"], rows)),
+            section("Songs", table(["Song", "Artist", "Submitter", "Round", "League", "Points"], rows, sortable={"columns": {0: "text", 1: "text", 2: "text", 3: "text", 4: "text", 5: "number"}, "default_column": 5, "default_direction": "desc"})),
         ]
     )
     return page_shell(model, album.name, body, model.site_dir / album.url)
