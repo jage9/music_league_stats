@@ -97,9 +97,7 @@ def table(headers: list[str], rows: list[list[str]], sortable: dict[str, object]
             head_parts.append(
                 f'<th scope="col" aria-sort="{esc(aria_sort)}">'
                 f'<button type="button" class="sort-button" data-column="{index}" data-sort-type="{esc(str(column_types.get(index, "text")))}" data-direction="{esc(default_direction if index == default_column else "asc")}">'
-                f'<span class="sort-label">{esc(header)}</span>'
-                f'<span class="sort-indicator" aria-hidden="true">{("v" if default_direction == "desc" else "^") if index == default_column else "<>"}</span>'
-                f'<span class="sr-only">{esc(f"Sort by {header}" + (f", currently sorted {direction_note}" if index == default_column else ""))}</span>'
+                f'<span class="sort-label">{esc(header + (f", {direction_note}" if index == default_column else ""))}</span>'
                 f"</button></th>"
             )
         else:
@@ -135,14 +133,11 @@ SORTER_SCRIPT = """
       const active = index === columnIndex;
       header.setAttribute("aria-sort", active ? (direction === "asc" ? "ascending" : "descending") : "none");
       button.dataset.direction = active && direction === "asc" ? "desc" : "asc";
-      const indicator = button.querySelector(".sort-indicator");
-      if (indicator) {
-        indicator.textContent = active ? (direction === "asc" ? "^" : "v") : "<>";
-      }
-      const srOnly = button.querySelector(".sr-only");
-      if (srOnly) {
-        const label = button.querySelector(".sort-label")?.textContent || "column";
-        srOnly.textContent = active ? `Sort by ${label}, currently sorted ${direction === "asc" ? "ascending" : "descending"}` : `Sort by ${label}`;
+      const label = button.querySelector(".sort-label");
+      if (label) {
+        const baseLabel = button.dataset.baseLabel || label.textContent || "column";
+        button.dataset.baseLabel = baseLabel;
+        label.textContent = active ? `${baseLabel}, ${direction === "asc" ? "ascending" : "descending"}` : baseLabel;
       }
     });
   }
