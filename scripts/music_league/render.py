@@ -198,7 +198,7 @@ def page_shell(model: SiteModel, title: str, body: str, page_path: Path, browser
         ("Artists", model.site_dir / "artists" / "index.html"),
         ("Albums", model.site_dir / "albums" / "index.html"),
         ("Songs", model.site_dir / "songs" / "index.html"),
-        ("Playlists", model.site_dir / "playlists" / "index.html"),
+        ("Prompts and Playlists", model.site_dir / "playlists" / "index.html"),
         ("Stats", model.site_dir / "stats" / "index.html"),
     ]
     nav_html = "".join(f'<a href="{esc(rel_link(page_path.parent, target))}">{esc(label)}</a>' for label, target in nav_items)
