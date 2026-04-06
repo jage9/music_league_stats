@@ -75,16 +75,20 @@ def enrich_model(model: SiteModel) -> None:
         album.leagues.add(submission.league.name)
 
     for round_obj in model.rounds:
-        ranked = sorted(round_obj.submissions, key=lambda item: (-item.total_points, item.title.lower(), item.submitter_name.lower()))
+        ranked = sorted(
+            round_obj.submissions,
+            key=lambda item: (-item.total_points, -item.vote_count, item.title.lower(), item.submitter_name.lower()),
+        )
         round_obj.total_points = sum(item.total_points for item in round_obj.submissions)
         round_obj.average_points_per_song = round_obj.total_points / len(round_obj.submissions) if round_obj.submissions else 0.0
         round_obj.comments_count = sum(1 for vote in round_obj.votes if vote.comment)
-        last_points = None
+        last_rank_key = None
         current_place = 0
         for index, submission in enumerate(ranked, start=1):
-            if submission.total_points != last_points:
+            rank_key = (submission.total_points, submission.vote_count)
+            if rank_key != last_rank_key:
                 current_place = index
-                last_points = submission.total_points
+                last_rank_key = rank_key
             submission.place = current_place
             field_size = len(ranked)
             submission.finish_percentile = 1.0 if field_size <= 1 else 1.0 - ((current_place - 1) / (field_size - 1))
