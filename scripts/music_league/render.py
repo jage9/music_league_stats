@@ -92,14 +92,12 @@ def table(headers: list[str], rows: list[list[str]], sortable: dict[str, object]
     head_parts = []
     for index, header in enumerate(headers):
         if index in sortable_columns:
-            is_default = index == default_column
+            direction_note = "descending" if index == default_column and default_direction == "desc" else "ascending"
             aria_sort = ("descending" if default_direction == "desc" else "ascending") if index == default_column else "none"
-            direction_html = f'<span class="sort-direction" aria-hidden="true">, {esc("descending" if default_direction == "desc" else "ascending")}</span>' if is_default else ""
             head_parts.append(
                 f'<th scope="col" aria-sort="{esc(aria_sort)}">'
                 f'<button type="button" class="sort-button" data-column="{index}" data-sort-type="{esc(str(column_types.get(index, "text")))}" data-direction="{esc(default_direction if index == default_column else "asc")}">'
-                f'<span class="sort-label">{esc(header)}</span>'
-                f"{direction_html}"
+                f'<span class="sort-label">{esc(header + (f", {direction_note}" if index == default_column else ""))}</span>'
                 f"</button></th>"
             )
         else:
@@ -135,17 +133,11 @@ SORTER_SCRIPT = """
       const active = index === columnIndex;
       header.setAttribute("aria-sort", active ? (direction === "asc" ? "ascending" : "descending") : "none");
       button.dataset.direction = active && direction === "asc" ? "desc" : "asc";
-      let directionNode = button.querySelector(".sort-direction");
-      if (active) {
-        if (!directionNode) {
-          directionNode = document.createElement("span");
-          directionNode.className = "sort-direction";
-          directionNode.setAttribute("aria-hidden", "true");
-          button.appendChild(directionNode);
-        }
-        directionNode.textContent = `, ${direction === "asc" ? "ascending" : "descending"}`;
-      } else if (directionNode) {
-        directionNode.remove();
+      const label = button.querySelector(".sort-label");
+      if (label) {
+        const baseLabel = button.dataset.baseLabel || label.textContent || "column";
+        button.dataset.baseLabel = baseLabel;
+        label.textContent = active ? `${baseLabel}, ${direction === "asc" ? "ascending" : "descending"}` : baseLabel;
       }
     });
   }
