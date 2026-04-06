@@ -23,7 +23,7 @@ def render_players_index(model: SiteModel) -> str:
             table(["Player", "Leagues", "Submissions", "Points", "Average Points", "Avg Finish Percentile", "Wins"], rows, sortable={"columns": {0: "text", 1: "number", 2: "number", 3: "number", 4: "number", 5: "number", 6: "number"}, "default_column": 3, "default_direction": "desc"}),
             section(
                 "Trending (Last 5 Rounds)",
-                f"<p>Based on the most recent 5 rounds across all leagues: {', '.join(anchor('players/index.html', round_obj.url, round_obj.name) for round_obj in recent_rounds)}.</p>"
+                "<p>Based on the most recent 5 rounds across all leagues.</p>"
                 + table(["Player", "Submissions", "Points", "Average Points", "Wins"], trending_rows, sortable={"columns": {0: "text", 1: "number", 2: "number", 3: "number", 4: "number"}, "default_column": 2, "default_direction": "desc"}),
             ),
         ]
@@ -61,7 +61,7 @@ def render_player_page(model: SiteModel, player: Player) -> str:
             section("Best And Worst Finishes", table(["Type", "Song", "Round", "Place", "Points"], best_rows + worst_rows if best and worst else [], sortable={"columns": {0: "text", 1: "text", 2: "text", 3: "number", 4: "number"}, "default_column": 3, "default_direction": "asc"})),
             section(
                 "Trending (Last 5 Rounds)",
-                f"<p>Based on the most recent 5 rounds across all leagues: {', '.join(anchor(player.url, round_obj.url, round_obj.name) for round_obj in recent_rounds)}.</p>"
+                "<p>Based on the most recent 5 rounds across all leagues.</p>"
                 + table(["Player", "Submissions", "Points", "Average Points", "Wins"], trending_rows, sortable={"columns": {0: "text", 1: "number", 2: "number", 3: "number", 4: "number"}, "default_column": 2, "default_direction": "desc"}),
             ),
             section("Placement History", table(["Date", "Round", "Song", "Place", "Points", "Finish Percentile"], placement_rows, sortable={"columns": {0: "date", 1: "text", 2: "text", 3: "number", 4: "number", 5: "number"}, "default_column": 0, "default_direction": "asc"})),

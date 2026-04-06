@@ -92,12 +92,11 @@ def table(headers: list[str], rows: list[list[str]], sortable: dict[str, object]
     head_parts = []
     for index, header in enumerate(headers):
         if index in sortable_columns:
-            direction_note = "descending" if index == default_column and default_direction == "desc" else "ascending"
             aria_sort = ("descending" if default_direction == "desc" else "ascending") if index == default_column else "none"
             head_parts.append(
                 f'<th scope="col" aria-sort="{esc(aria_sort)}">'
                 f'<button type="button" class="sort-button" data-column="{index}" data-sort-type="{esc(str(column_types.get(index, "text")))}" data-direction="{esc(default_direction if index == default_column else "asc")}">'
-                f'<span class="sort-label">{esc(header + (f", {direction_note}" if index == default_column else ""))}</span>'
+                f'<span class="sort-label">{esc(header)}</span>'
                 f"</button></th>"
             )
         else:
@@ -133,12 +132,6 @@ SORTER_SCRIPT = """
       const active = index === columnIndex;
       header.setAttribute("aria-sort", active ? (direction === "asc" ? "ascending" : "descending") : "none");
       button.dataset.direction = active && direction === "asc" ? "desc" : "asc";
-      const label = button.querySelector(".sort-label");
-      if (label) {
-        const baseLabel = button.dataset.baseLabel || label.textContent || "column";
-        button.dataset.baseLabel = baseLabel;
-        label.textContent = active ? `${baseLabel}, ${direction === "asc" ? "ascending" : "descending"}` : baseLabel;
-      }
     });
   }
 
