@@ -203,10 +203,12 @@ def page_shell(model: SiteModel, title: str, body: str, page_path: Path, browser
     ]
     nav_html = "".join(f'<a href="{esc(rel_link(page_path.parent, target))}">{esc(label)}</a>' for label, target in nav_items)
     github_href = "https://www.github.com/jage9/music_league_stats"
+    changelog_href = rel_link(page_path.parent, model.site_dir / "changelog" / "index.html")
     footer = (
         f'<footer class="site-footer"><p>Generated {esc(fmt_generated_dt(model.generated_at))} '
         f'in {esc(f"{model.generation_seconds:.3f}")} seconds.</p>'
-        f'<p>Another AI experiment from Jage. <a href="{esc(github_href)}" target="_blank" rel="noopener noreferrer">Github link</a></p></footer>'
+        f'<p>Another AI experiment from Jage. <a href="{esc(github_href)}" target="_blank" rel="noopener noreferrer">Github link</a></p>'
+        f'<p>{esc(model.site_version)} <a href="{esc(changelog_href)}">View Changelog</a></p></footer>'
     )
     return f"""<!doctype html>
 <html lang="en">
@@ -218,7 +220,6 @@ def page_shell(model: SiteModel, title: str, body: str, page_path: Path, browser
 </head>
 <body>
   <header class="site-header">
-    <p class="eyebrow">Music League Archive</p>
     <nav class="site-nav">{nav_html}</nav>
     <h1>{esc(title)}</h1>
   </header>
