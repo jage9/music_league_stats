@@ -8,6 +8,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from .models import League, Round, SiteModel, Submission, Vote
+from .site_meta import SITE_VERSION
 
 
 def slugify(value: str) -> str:
@@ -94,7 +95,6 @@ def load_site_config(path: Path) -> dict[str, str]:
     return {
         "title": canonical_text(str(raw.get("title", ""))),
         "description": canonical_text(str(raw.get("description", ""))),
-        "version": canonical_text(str(raw.get("version", ""))),
     }
 
 
@@ -108,14 +108,13 @@ def load_model() -> SiteModel:
         site_assets_dir=root / "site" / "assets",
         config_path=root / "config.json",
         sample_config_path=root / "config.sample.json",
+        site_version=SITE_VERSION,
     )
     config = load_site_config(model.config_path)
     if config.get("title"):
         model.site_title = config["title"]
     if config.get("description"):
         model.site_description = config["description"]
-    if config.get("version"):
-        model.site_version = config["version"]
     rounds_by_key: dict[str, Round] = {}
     submissions_by_key: dict[str, Submission] = {}
     league_dirs = sorted((path for path in model.leagues_dir.iterdir() if path.is_dir()), key=lambda path: path.name.lower())
