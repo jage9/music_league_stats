@@ -20,12 +20,12 @@ def render_players_index(model: SiteModel) -> str:
     ]
     body = "".join(
         [
-            table(["Player", "Leagues", "Submissions", "Points", "Average Points", "Avg Finish Percentile", "Wins"], rows, sortable={"columns": {0: "text", 1: "number", 2: "number", 3: "number", 4: "number", 5: "number", 6: "number"}, "default_column": 3, "default_direction": "desc"}),
-            section(
-                "Trending (Last 5 Rounds)",
-                "<p>Based on the most recent 5 rounds across all leagues.</p>"
-                + table(["Player", "Submissions", "Points", "Average Points", "Wins"], trending_rows, sortable={"columns": {0: "text", 1: "number", 2: "number", 3: "number", 4: "number"}, "default_column": 2, "default_direction": "desc"}),
-            ),
+            '<section id="career-leaderboard"><h2>Career Leaderboard</h2>'
+            + table(["Player", "Leagues", "Submissions", "Points", "Average Points", "Avg Finish Percentile", "Wins"], rows, sortable={"columns": {0: "text", 1: "number", 2: "number", 3: "number", 4: "number", 5: "number", 6: "number"}, "default_column": 3, "default_direction": "desc"})
+            + "</section>",
+            '<section id="trending-last-5-rounds"><h2>Trending (Last 5 Rounds)</h2><p>Based on the most recent 5 rounds across all leagues.</p>'
+            + table(["Player", "Submissions", "Points", "Average Points", "Wins"], trending_rows, sortable={"columns": {0: "text", 1: "number", 2: "number", 3: "number", 4: "number"}, "default_column": 2, "default_direction": "desc"})
+            + "</section>",
         ]
     )
     return page_shell(model, "Players", body, model.site_dir / "players" / "index.html")
